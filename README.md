@@ -22,7 +22,7 @@ Aplikasi ini merupakan **generator dokumen berbasis frontend**, bukan aplikasi a
 - Tanggal transaksi.
 - Penyesuaian bulan Romawi dan tahun pada nomor kwitansi mengikuti tanggal yang dipilih.
 - Nominal pembayaran dalam Rupiah.
-- Tombol nominal cepat Rp10.000, Rp25.000, Rp50.000, dan Rp100.000.
+- Tombol tambah nominal cepat yang menambahkan Rp10.000, Rp25.000, Rp50.000, atau Rp100.000 ke nominal saat ini.
 
 ### 3. Informasi pembayaran
 - Metode pembayaran: Cash, QRIS, dan Transfer Bank.
@@ -116,6 +116,8 @@ kwitansikas/
 - `aplikasi_kwitansi_medoxordia_fk_uin_walisongo.html`: salinan halaman aplikasi dengan nama deskriptif.
 - `README.md`: dokumentasi repository.
 
+Kedua berkas HTML saat ini memiliki isi yang sama. Jika kode aplikasi diperbarui, pastikan keduanya tetap sinkron atau tetapkan satu berkas sebagai sumber utama.
+
 ## Arsitektur, data, dan privasi
 
 - Seluruh logika pembuatan kwitansi berjalan di browser pengguna.
@@ -127,6 +129,8 @@ kwitansikas/
 ## Batasan dan catatan penggunaan
 
 **Stempel digital bukan verifikasi pembayaran.** Tulisan “LUNAS / VERIFIED” merupakan elemen visual pada template yang dapat ditampilkan atau disembunyikan. Aplikasi tidak memeriksa mutasi rekening, status QRIS, maupun konfirmasi dari penyedia pembayaran. Bendahara harus memverifikasi pembayaran melalui kanal resmi sebelum menerbitkan kwitansi sebagai tanda pembayaran yang telah diterima.
+
+**Tanggal awal perlu diperiksa pada pagi hari.** Nilai tanggal awal saat ini dibentuk menggunakan tanggal UTC. Pada zona waktu Indonesia (UTC+7 hingga UTC+9), aplikasi berpotensi menampilkan tanggal satu hari sebelumnya pada jam-jam awal sebelum pergantian tanggal UTC. Periksa tanggal pada formulir sebelum menerbitkan kwitansi.
 
 **Nomor kwitansi tidak dikelola secara terpusat.** Tombol kenaikan nomor hanya mengubah nilai pada formulir saat itu. Tidak ada penyimpanan nomor terakhir, penguncian nomor, maupun pemeriksaan duplikasi antarperangkat atau pengguna.
 
