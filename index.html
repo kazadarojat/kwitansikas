@@ -375,7 +375,7 @@
                                 <div class="grid grid-cols-12 items-start gap-2">
                                     <div class="col-span-4 font-semibold text-slate-600 pt-1">Untuk Pembayaran</div>
                                     <div class="col-span-8 border-b border-dotted border-slate-400 pb-2 text-slate-800 leading-relaxed min-h-[3.5rem]" id="prev-purpose">
-                                        Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang
+                                        Pembayaran Iuran Kas Angkatan 1 Medexordia FK UIN Walisongo Semarang
                                     </div>
                                 </div>
 
@@ -663,7 +663,7 @@ Salam,
         // Handler saat memilih jenis pembayaran
         function handlePurposeSelect(type) {
             if (type === 'kas') {
-                inputPurpose.value = 'Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang';
+                inputPurpose.value = 'Pembayaran Iuran Kas Angkatan 1 Medexordia FK UIN Walisongo Semarang';
             } else if (type === 'acara') {
                 inputPurpose.value = 'Pembayaran Acara Angkatan 1 Medexordia FK UIN Walisongo Semarang';
             } else if (type === 'lainnya') {
@@ -834,7 +834,7 @@ Salam,
             const cashRadio = document.querySelector('input[name="payment-method"][value="Cash"]');
             if (cashRadio) cashRadio.checked = true;
             selectPurpose.value = 'kas';
-            inputPurpose.value = 'Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang';
+            inputPurpose.value = 'Pembayaran Iuran Kas Angkatan 1 Medexordia FK UIN Walisongo Semarang';
             handleAmountChange();
             updatePreview();
             showToast('Formulir berhasil dikosongkan.');
