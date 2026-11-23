@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kwitansi Digital - Bendahara Medexordia FK UIN Walisongo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter, Poppins, Playfair Display & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Playfair+Display:wght@700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas & jsPDF untuk Ekspor Gambar & PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        walisongo: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        gold: {
+                            500: '#d97706',
+                            600: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Notifikasi Toast -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Header Aplikasi -->
+    <header class="bg-walisongo-900 text-white shadow-lg border-b-4 border-amber-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-walisongo-700 p-2.5 rounded-xl border border-walisongo-600 shadow-inner">
+                    <i data-lucide="receipt" class="w-7 h-7 text-amber-400"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">E-Kwitansi Bendahara</h1>
+                    <p class="text-xs sm:text-sm text-emerald-200">Angkatan 1 Medexordia • FK UIN Walisongo Semarang</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 text-xs bg-walisongo-800/80 px-3 py-1.5 rounded-full border border-walisongo-700">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Siap Cetak & Ekspor</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Konten Utama -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Kolom Kiri: Formulir Input (5 Kolom di Desktop) -->
+            <div class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+                <div class="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="file-edit" class="w-5 h-5 text-walisongo-700"></i>
+                        <h2 class="font-bold text-slate-800 text-base sm:text-lg">Detail Kwitansi</h2>
+                    </div>
+                    <button type="button" onclick="resetForm()" class="text-xs font-medium text-slate-500 hover:text-rose-600 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-rose-50 cursor-pointer">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset
+                    </button>
+                </div>
+
+                <form id="receipt-form" class="space-y-4" onsubmit="return false;">
+                    <!-- Nomor Kwitansi & Tanggal -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="input-no" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                <span>No. Kwitansi</span>
+                                <button type="button" onclick="incrementReceiptNo()" class="text-[10px] font-bold text-walisongo-700 bg-walisongo-50 hover:bg-walisongo-100 border border-walisongo-200 px-1.5 py-0.5 rounded transition-colors cursor-pointer" title="Naikkan nomor urut +1">
+                                    +1 Urutan
+                                </button>
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="input-no" value="001/IN-KAS/MEX/XI/2026" 
+                                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="input-date" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Tanggal</label>
+                            <input type="date" id="input-date" 
+                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Telah Terima Dari: Nama Pembayar & NIM -->
+                    <div class="space-y-3">
+                        <div>
+                            <label for="select-student" class="block text-xs font-semibold text-walisongo-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                                <span>Pilih Cepat Mahasiswa Angkatan 1</span>
+                                <span class="text-[10px] font-normal text-slate-500 normal-case">50 Mahasiswa Terdaftar</span>
+                            </label>
+                            <select id="select-student" onchange="handleStudentSelect(this.value)"
+                                class="w-full rounded-xl border border-walisongo-200 bg-walisongo-50/50 px-3.5 py-2.5 text-sm text-slate-800 focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all cursor-pointer">
+                                <option value="">-- Pilih dari Daftar Mahasiswa (Opsional) --</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                            <div class="sm:col-span-7">
+                                <label for="input-payer" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Nama Pembayar <span class="text-rose-500">*</span></label>
+                                <input type="text" id="input-payer" list="list-nama-mahasiswa" placeholder="Ketik atau pilih nama..." value="Aulia Rahmah Darmadi"
+                                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                                <datalist id="list-nama-mahasiswa"></datalist>
+                            </div>
+                            <div class="sm:col-span-5">
+                                <label for="input-nim" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">NIM Pembayar</label>
+                                <input type="text" id="input-nim" list="list-nim-mahasiswa" placeholder="Ketik atau pilih NIM..." value="25100160001"
+                                    class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-mono focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                                <datalist id="list-nim-mahasiswa"></datalist>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nominal Uang -->
+                    <div>
+                        <label for="input-amount" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Nominal Uang (Rp) <span class="text-rose-500">*</span></label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500 font-bold text-sm">Rp</span>
+                            <input type="number" id="input-amount" placeholder="0" value="50000" min="0" step="500"
+                                class="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-2.5 text-base font-mono font-bold text-walisongo-800 focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                        </div>
+                        <!-- Tombol Cepat Nominal -->
+                        <div class="flex flex-wrap gap-1.5 mt-2">
+                            <button type="button" onclick="setNominal(10000)" class="text-xs bg-slate-100 hover:bg-walisongo-50 hover:text-walisongo-700 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">+10rb</button>
+                            <button type="button" onclick="setNominal(25000)" class="text-xs bg-slate-100 hover:bg-walisongo-50 hover:text-walisongo-700 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">+25rb</button>
+                            <button type="button" onclick="setNominal(50000)" class="text-xs bg-slate-100 hover:bg-walisongo-50 hover:text-walisongo-700 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">+50rb</button>
+                            <button type="button" onclick="setNominal(100000)" class="text-xs bg-slate-100 hover:bg-walisongo-50 hover:text-walisongo-700 border border-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">+100rb</button>
+                        </div>
+                    </div>
+
+                    <!-- Metode Pembayaran -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Metode Pembayaran</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="payment-method" value="Cash" checked class="peer sr-only">
+                                <div class="text-center py-2 px-3 rounded-xl border border-slate-300 text-xs font-semibold text-slate-600 peer-checked:bg-walisongo-50 peer-checked:border-walisongo-600 peer-checked:text-walisongo-800 transition-all flex items-center justify-center gap-1.5">
+                                    <i data-lucide="banknote" class="w-3.5 h-3.5"></i>
+                                    <span>Cash</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="payment-method" value="QRIS" class="peer sr-only">
+                                <div class="text-center py-2 px-3 rounded-xl border border-slate-300 text-xs font-semibold text-slate-600 peer-checked:bg-walisongo-50 peer-checked:border-walisongo-600 peer-checked:text-walisongo-800 transition-all flex items-center justify-center gap-1.5">
+                                    <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                                    <span>QRIS</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="payment-method" value="Transfer Bank" class="peer sr-only">
+                                <div class="text-center py-2 px-3 rounded-xl border border-slate-300 text-xs font-semibold text-slate-600 peer-checked:bg-walisongo-50 peer-checked:border-walisongo-600 peer-checked:text-walisongo-800 transition-all flex items-center justify-center gap-1.5">
+                                    <i data-lucide="landmark" class="w-3.5 h-3.5"></i>
+                                    <span>Transfer Bank</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Uang Sejumlah (Terbilang Otomatis) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="input-terbilang" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Uang Sejumlah (Terbilang)</label>
+                            <span class="text-[11px] text-walisongo-600 font-medium bg-walisongo-50 px-2 py-0.5 rounded-md">Otomatis</span>
+                        </div>
+                        <textarea id="input-terbilang" rows="2" 
+                            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-sm italic text-slate-700 focus:bg-white focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all"></textarea>
+                    </div>
+
+                    <!-- Untuk Pembayaran -->
+                    <div>
+                        <label for="select-purpose" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Untuk Pembayaran <span class="text-rose-500">*</span></label>
+                        <select id="select-purpose" onchange="handlePurposeSelect(this.value)"
+                            class="w-full rounded-xl border border-slate-300 bg-slate-50/70 px-3.5 py-2.5 text-sm text-slate-800 mb-2 focus:bg-white focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all cursor-pointer">
+                            <option value="kas">Pembayaran Iuran Kas</option>
+                            <option value="acara">Pembayaran Acara</option>
+                            <option value="lainnya">Lainnya (Isi Keterangan)</option>
+                        </select>
+                        <textarea id="input-purpose" rows="3" placeholder="Tuliskan detail keterangan pembayaran..."
+                            class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang</textarea>
+                    </div>
+
+                    <!-- Pengaturan Tambahan: Kota & Nama Bendahara -->
+                    <div class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="input-city" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Kota Terbit</label>
+                            <input type="text" id="input-city" value="Semarang" 
+                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label for="input-treasurer" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Nama Bendahara</label>
+                            <input type="text" id="input-treasurer" value="Bendahara Angkatan 1" placeholder="Nama lengkap bendahara..."
+                                class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-walisongo-600 focus:ring-2 focus:ring-walisongo-600/20 outline-none transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Opsi Stempel Digital & Ganti Logo -->
+                    <div class="pt-2 flex flex-wrap items-center justify-between gap-3">
+                        <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                            <input type="checkbox" id="toggle-stamp" checked class="w-4 h-4 rounded text-walisongo-600 focus:ring-walisongo-600 border-slate-300">
+                            <span class="text-xs font-medium text-slate-700">Tampilkan Cap / Stempel Digital</span>
+                        </label>
+
+                        <div class="flex items-center gap-2">
+                            <label for="upload-logo" class="text-xs font-medium text-walisongo-700 hover:text-walisongo-800 bg-walisongo-50 hover:bg-walisongo-100 border border-walisongo-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors inline-flex items-center gap-1">
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                                <span>Ganti Logo</span>
+                            </label>
+                            <input type="file" id="upload-logo" accept="image/*" class="hidden">
+                            <button type="button" id="reset-logo-btn" onclick="resetLogo()" class="hidden text-xs font-medium text-rose-600 hover:underline cursor-pointer">Default</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Kolom Kanan: Pratinjau Kwitansi & Tombol Ekspor (7 Kolom di Desktop) -->
+            <div class="lg:col-span-7 flex flex-col gap-5">
+                
+                <!-- Bar Aksi Ekspor -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                        <i data-lucide="eye" class="w-4 h-4 text-walisongo-700"></i>
+                        <span>Pratinjau Kwitansi</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                        <button type="button" id="btn-copy-wa" onclick="copyWhatsAppMessage()" 
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white text-sm font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer" title="Salin teks pesan konfirmasi untuk dikirim ke WhatsApp">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            <span>Salin Pesan WA</span>
+                        </button>
+                        <button type="button" id="btn-export-png" onclick="exportToImage()" 
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-sm font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer">
+                            <i data-lucide="image" class="w-4 h-4"></i>
+                            <span>Simpan PNG</span>
+                        </button>
+                        <button type="button" id="btn-export-pdf" onclick="exportToPDF()" 
+                            class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] text-white text-sm font-semibold px-3.5 py-2.5 rounded-xl shadow-sm transition-all cursor-pointer">
+                            <i data-lucide="file-down" class="w-4 h-4"></i>
+                            <span>Ekspor PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Wrapper Scroll Horizontal di Layar Sangat Kecil agar Proporsi Kwitansi Tetap Utuh -->
+                <div class="overflow-x-auto pb-2 rounded-none">
+                    <!-- Area Kanvas Kwitansi yang akan di-capture (Persegi Panjang Sempurna, Sudut Siku) -->
+                    <div id="receipt-capture-area" class="min-w-[640px] bg-white rounded-none shadow-md border-2 border-slate-300 overflow-hidden relative">
+                        
+                        <!-- Ornamen Garis Atas -->
+                        <div class="h-3 bg-gradient-to-r from-walisongo-900 via-walisongo-700 to-amber-500"></div>
+
+                        <!-- Konten Dalam Kwitansi -->
+                        <div class="p-7 sm:p-8 relative">
+                            
+                            <!-- Watermark Latar Belakang Halus (Logo & Teks Medexordia) -->
+                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.045] select-none">
+                                <div class="text-center flex flex-col items-center">
+                                    <svg viewBox="0 0 300 300" class="w-56 h-56 text-walisongo-900" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="150" cy="150" r="142" stroke="currentColor" stroke-width="5"/>
+                                        <circle cx="150" cy="150" r="102" stroke="currentColor" stroke-width="3.5"/>
+                                        <circle cx="150" cy="84" r="4" fill="currentColor"/>
+                                        <circle cx="136" cy="92" r="4" fill="currentColor"/>
+                                        <circle cx="158" cy="100" r="4" fill="currentColor"/>
+                                        <path d="M150 84L147 93M136 92L147 93M158 100L147 93" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                        <circle cx="150" cy="122" r="9" fill="currentColor"/>
+                                        <path d="M150 133C136 133 116 116 92 114C98 124 108 128 118 130C104 130 96 128 88 125C95 135 107 139 118 140C106 141 98 140 91 138C100 147 112 150 124 149C113 151 106 151 100 150C110 157 123 158 135 154L143 152L135 170C125 177 115 179 105 179C115 184 128 183 140 176L146 168L147 226L150 235L153 226L154 168L160 176C172 183 185 184 195 179C185 179 175 177 165 170L157 152L165 154C177 158 190 157 200 150C194 151 187 151 176 149C188 150 200 147 209 138C202 140 194 141 182 140C193 139 205 135 212 125C204 128 196 130 182 130C192 128 202 124 208 114C184 116 164 133 150 133Z" fill="currentColor"/>
+                                        <path d="M142 156C132 162 132 174 146 182C160 190 160 202 146 212" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>
+                                        <path d="M158 156C168 162 168 174 154 182C140 190 140 202 154 212" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <!-- Kop Kwitansi -->
+                            <div class="flex items-start justify-between border-b-2 border-walisongo-800 pb-4 mb-6 relative z-10">
+                                <div class="flex items-center gap-4">
+                                    <!-- Logo Resmi Angkatan Medexordia FK UIN Walisongo -->
+                                    <div id="logo-container" class="w-16 h-16 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden shadow-sm border border-slate-200">
+                                        <img id="custom-logo-img" src="" alt="Logo Medexordia" class="hidden w-full h-full object-contain">
+                                        
+                                        <svg id="default-logo-svg" viewBox="0 0 300 300" class="w-full h-full text-slate-900" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <defs>
+                                                <path id="topArc" d="M 38,150 A 112,112 0 1,1 262,150" />
+                                                <path id="bottomArc" d="M 32,150 A 118,118 0 0,0 268,150" />
+                                            </defs>
+                                            <circle cx="150" cy="150" r="144" fill="#ffffff" stroke="currentColor" stroke-width="5"/>
+                                            <circle cx="150" cy="150" r="98" stroke="currentColor" stroke-width="3.5"/>
+                                            <text fill="currentColor" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="22.5" letter-spacing="1.8">
+                                                <textPath href="#topArc" startOffset="50%" text-anchor="middle">FAKULTAS KEDOKTERAN</textPath>
+                                            </text>
+                                            <circle cx="29" cy="155" r="4.5" fill="currentColor"/>
+                                            <circle cx="271" cy="155" r="4.5" fill="currentColor"/>
+                                            <text fill="currentColor" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="25" letter-spacing="3.5">
+                                                <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">MEDEXORDIA</textPath>
+                                            </text>
+                                            <circle cx="150" cy="79" r="4.2" fill="currentColor"/>
+                                            <circle cx="135" cy="87" r="4.2" fill="currentColor"/>
+                                            <circle cx="158" cy="96" r="4.2" fill="currentColor"/>
+                                            <path d="M150 79L147 88.5M135 87L147 88.5M158 96L147 88.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
+                                            <path d="M150 61V68M133 65L137 71M167 65L163 71M120 77L126 81M180 77L174 81M117 94L124 94M183 94L176 94" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+                                            <circle cx="150" cy="121" r="8.5" fill="currentColor"/>
+                                            <path d="M150 132C136 132 117 115 94 113C100 123 110 127 120 129C106 129 98 127 90 124C97 134 109 138 120 139C108 140 100 139 93 137C102 146 114 149 126 148C115 150 108 150 102 149C112 156 125 157 136 153L144 151L136 169C126 176 116 178 106 178C116 183 129 182 141 175L146.5 167L147.5 224L150 234L152.5 224L153.5 167L159 175C171 182 184 183 194 178C184 178 174 176 164 169L156 151L164 153C175 157 188 156 198 149C192 150 185 150 174 148C186 149 198 146 207 137C200 139 192 140 180 139C191 138 203 134 210 124C202 127 194 129 180 129C190 127 200 123 206 113C183 115 164 132 150 132Z" fill="currentColor"/>
+                                            <path d="M142 154C131 161 131 173 146 181C161 189 161 201 146 211" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>
+                                            <path d="M158 154C169 161 169 173 154 181C139 189 139 201 154 211" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>
+                                            <line x1="143" y1="168" x2="157" y2="168" stroke="currentColor" stroke-width="2.5"/>
+                                            <line x1="143" y1="196" x2="157" y2="196" stroke="currentColor" stroke-width="2.5"/>
+                                            <path d="M138 225C105 212 85 182 88 146" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                            <path d="M126 219L116 221M115 211L104 211M105 201L94 199M97 189L86 185M91 176L81 170M88 162L79 155" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                            <path d="M124 217L120 207M113 209L111 199M103 199L103 189M96 187L98 177M90 174L94 165" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                                            <path d="M162 225C195 212 215 182 212 146" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                            <path d="M174 219L184 221M185 211L196 211M195 201L206 199M203 189L214 185M209 176L219 170M212 162L221 155" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                                            <path d="M176 217L180 207M187 209L189 199M197 199L197 189M204 187L202 177M210 174L206 165" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-bold uppercase tracking-widest text-walisongo-700">Bendahara Angkatan 1</p>
+                                        <h3 class="font-poppins font-bold text-xl text-slate-900 tracking-wide leading-snug">MEDEXORDIA</h3>
+                                        <p class="text-xs font-medium text-slate-600">Fakultas Kedokteran • UIN Walisongo Semarang</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="inline-block bg-walisongo-900 text-white font-bold text-sm tracking-widest uppercase px-4 py-1.5 rounded-lg mb-1.5">
+                                        KWITANSI
+                                    </div>
+                                    <p class="text-xs font-mono text-slate-600">No: <span id="prev-no" class="font-bold text-slate-900">001/IN-KAS/MEX/XI/2026</span></p>
+                                </div>
+                            </div>
+
+                            <!-- Isi Utama Kwitansi -->
+                            <div class="space-y-4 text-sm relative z-10">
+                                
+                                <!-- Baris 1: Telah Terima Dari (Nama & NIM) -->
+                                <div class="grid grid-cols-12 items-baseline gap-2">
+                                    <div class="col-span-4 font-semibold text-slate-600">Telah Terima Dari</div>
+                                    <div class="col-span-8 border-b border-dotted border-slate-400 pb-1 flex flex-wrap items-baseline justify-between gap-2">
+                                        <span class="font-bold text-slate-900" id="prev-payer">Aulia Rahmah Darmadi</span>
+                                        <span id="prev-nim-wrapper" class="text-xs font-mono font-semibold text-walisongo-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                                            NIM: <span id="prev-nim">25100160001</span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Baris 2: Uang Sejumlah -->
+                                <div class="grid grid-cols-12 items-start gap-2">
+                                    <div class="col-span-4 font-semibold text-slate-600 pt-1.5">Uang Sejumlah</div>
+                                    <div class="col-span-8">
+                                        <div class="bg-emerald-50/90 border border-emerald-200/80 rounded-lg px-3.5 py-2 font-medium italic text-walisongo-950 leading-relaxed" id="prev-terbilang">
+                                            Lima Puluh Ribu Rupiah
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Baris 3: Untuk Pembayaran -->
+                                <div class="grid grid-cols-12 items-start gap-2">
+                                    <div class="col-span-4 font-semibold text-slate-600 pt-1">Untuk Pembayaran</div>
+                                    <div class="col-span-8 border-b border-dotted border-slate-400 pb-2 text-slate-800 leading-relaxed min-h-[3.5rem]" id="prev-purpose">
+                                        Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang
+                                    </div>
+                                </div>
+
+                                <!-- Bagian Bawah: Kotak Nominal & Area Tanda Tangan -->
+                                <div class="pt-4 mt-2 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 border-t border-slate-100">
+                                    
+                                    <!-- Kotak Nominal Uang & Metode Pembayaran -->
+                                    <div class="flex flex-col gap-1.5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Nominal Uang:</span>
+                                            <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-300 px-2 py-0.5 rounded">
+                                                Via: <span id="prev-method" class="text-walisongo-800">Cash</span>
+                                            </span>
+                                        </div>
+                                        <div class="relative inline-flex items-center bg-slate-900 text-white px-5 py-3 rounded-xl border-l-4 border-amber-400 shadow-sm">
+                                            <span class="font-mono font-bold text-xl tracking-tight text-amber-300" id="prev-amount">Rp 50.000,-</span>
+                                        </div>
+                                        <p class="text-[10px] text-slate-400 mt-1">* Simpan bukti pembayaran ini sebagai arsip yang sah.</p>
+                                    </div>
+
+                                    <!-- Area Tanggal & Tanda Tangan Bendahara -->
+                                    <div class="text-center min-w-[200px] relative self-end">
+                                        <p class="text-xs text-slate-700 mb-1">
+                                            <span id="prev-city">Semarang</span>, <span id="prev-date" class="font-medium">23 November 2026</span>
+                                        </p>
+                                        <p class="text-xs font-semibold text-slate-800">Bendahara Angkatan 1</p>
+                                        
+                                        <!-- Ruang Tanda Tangan & Stempel Digital -->
+                                        <div class="h-16 flex items-center justify-center relative my-1">
+                                            <div id="digital-stamp" class="border-2 border-emerald-700/75 text-emerald-800/80 rounded-lg px-2.5 py-1 transform -rotate-12 select-none pointer-events-none bg-emerald-50/30 backdrop-blur-[1px]">
+                                                <p class="text-[9px] font-extrabold tracking-widest uppercase leading-none">LUNAS / VERIFIED</p>
+                                                <p class="text-[7px] font-bold tracking-wider uppercase mt-0.5">MEDEXORDIA • FK UIN WS</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="border-b border-slate-800 pb-0.5 px-2">
+                                            <p class="text-xs font-bold text-slate-900" id="prev-treasurer">Bendahara Angkatan 1</p>
+                                        </div>
+                                        <p class="text-[10px] text-slate-500 mt-0.5">Medexordia FK UIN Walisongo</p>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Ornamen Garis Bawah -->
+                        <div class="bg-slate-50 border-t border-slate-200/80 px-8 py-2 flex items-center justify-between text-[10px] text-slate-400">
+                            <span>Dokumen Digital Bendahara Angkatan 1 Medexordia</span>
+                            <span>Fakultas Kedokteran UIN Walisongo Semarang</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+
+        // Daftar Mahasiswa Angkatan 1 Medexordia (NIM & NAMA)
+        const STUDENT_LIST = [
+            { nim: "25100160001", nama: "Aulia Rahmah Darmadi" },
+            { nim: "25100160002", nama: "Faza Maulida Setiyanti" },
+            { nim: "25100160003", nama: "Nadiya Fithriani" },
+            { nim: "25100160004", nama: "Azzahra Nabila Putri" },
+            { nim: "25100160005", nama: "Sandi Aulia Azkis" },
+            { nim: "25100160006", nama: "Daffa Raffideta A" },
+            { nim: "25100160007", nama: "Kayla Aulia Syauqina" },
+            { nim: "25100160008", nama: "Abdul Kadir" },
+            { nim: "25100160009", nama: "Muhammad Almas Maulida" },
+            { nim: "25100160010", nama: "Alfia Kurnia Wardani" },
+            { nim: "25100160011", nama: "Fadhel Faiq G A" },
+            { nim: "25100160012", nama: "Michelia Maura Mackenzie" },
+            { nim: "25100160013", nama: "Wahyu Fitriani" },
+            { nim: "25100160014", nama: "Callista Firdausia Rizky P" },
+            { nim: "25100160015", nama: "Naufal Hayba" },
+            { nim: "25100160016", nama: "Lubna Fatiha Moh" },
+            { nim: "25100160017", nama: "Nur Andita Maharani Putri" },
+            { nim: "25100160018", nama: "Qais Maitsa Faisal" },
+            { nim: "25100160019", nama: "Nadia Aulia Salsabila A" },
+            { nim: "25100160020", nama: "Diva Aulia Zaidi" },
+            { nim: "25100160021", nama: "Intan Fatimatuzzahra" },
+            { nim: "25100160022", nama: "Nova Arya Jaksa Susetya" },
+            { nim: "25100160023", nama: "Naula Yumna Qothrunnada" },
+            { nim: "25100160024", nama: "Salwa Anjaina" },
+            { nim: "25100160025", nama: "Aisyah Shafia Mecca" },
+            { nim: "25100160026", nama: "Inaz Aozora Yusuf" },
+            { nim: "25100160027", nama: "Early Wilda Adhya Shareefa" },
+            { nim: "25100160028", nama: "Khansa Ayu Hafizhah" },
+            { nim: "25100160029", nama: "Ghea Amalia Wicaksono Putri" },
+            { nim: "25100160030", nama: "Mehjaben Raisah Nasution" },
+            { nim: "25100160031", nama: "Hudzaifah" },
+            { nim: "25100160032", nama: "Chelsea Belvana F R" },
+            { nim: "25100160033", nama: "Fahmi Achmad Darojat" },
+            { nim: "25100160034", nama: "Bening Taqiyya Affa" },
+            { nim: "25100160035", nama: "Aredea Aski Nuzha Rosyada" },
+            { nim: "25100160036", nama: "Maulana Alam Lanang Syah" },
+            { nim: "25100160037", nama: "Hasna Najih Azzahra" },
+            { nim: "25100160038", nama: "Adrina Ilma Taqia" },
+            { nim: "25100160039", nama: "Nadya Shafwah Dwi Kuncoro" },
+            { nim: "25100160040", nama: "Hanan Syarif" },
+            { nim: "25100160041", nama: "Sekar Aulia Faiza" },
+            { nim: "25100160042", nama: "Yudhist Sholihati Ahmad" },
+            { nim: "25100160043", nama: "Aliyah Zahrah Naila Putri" },
+            { nim: "25100160044", nama: "Mohammad Hafez Hardiyoto" },
+            { nim: "25100160045", nama: "Muhammad Fathi Al Fajri" },
+            { nim: "25100160046", nama: "Auliya Lu'Lu' Naelufara" },
+            { nim: "25100160047", nama: "Putri Salma Fasa Sabela" },
+            { nim: "25100160048", nama: "Aghisna Farah Hafizah" },
+            { nim: "25100160049", nama: "Haura Arin Salsabila" },
+            { nim: "25100160050", nama: "Gyan Alzain Purnomohardjo" }
+        ];
+
+        const ROMAN_MONTHS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+
+        // Referensi Elemen Input
+        const selectStudent = document.getElementById('select-student');
+        const listNamaMahasiswa = document.getElementById('list-nama-mahasiswa');
+        const listNimMahasiswa = document.getElementById('list-nim-mahasiswa');
+        const inputNo = document.getElementById('input-no');
+        const inputDate = document.getElementById('input-date');
+        const inputPayer = document.getElementById('input-payer');
+        const inputNim = document.getElementById('input-nim');
+        const inputAmount = document.getElementById('input-amount');
+        const inputTerbilang = document.getElementById('input-terbilang');
+        const selectPurpose = document.getElementById('select-purpose');
+        const inputPurpose = document.getElementById('input-purpose');
+        const inputCity = document.getElementById('input-city');
+        const inputTreasurer = document.getElementById('input-treasurer');
+        const toggleStamp = document.getElementById('toggle-stamp');
+        const uploadLogoInput = document.getElementById('upload-logo');
+        const customLogoImg = document.getElementById('custom-logo-img');
+        const defaultLogoSvg = document.getElementById('default-logo-svg');
+        const resetLogoBtn = document.getElementById('reset-logo-btn');
+
+        // Referensi Elemen Pratinjau
+        const prevNo = document.getElementById('prev-no');
+        const prevPayer = document.getElementById('prev-payer');
+        const prevNimWrapper = document.getElementById('prev-nim-wrapper');
+        const prevNim = document.getElementById('prev-nim');
+        const prevTerbilang = document.getElementById('prev-terbilang');
+        const prevPurpose = document.getElementById('prev-purpose');
+        const prevAmount = document.getElementById('prev-amount');
+        const prevMethod = document.getElementById('prev-method');
+        const prevCity = document.getElementById('prev-city');
+        const prevDate = document.getElementById('prev-date');
+        const prevTreasurer = document.getElementById('prev-treasurer');
+        const digitalStamp = document.getElementById('digital-stamp');
+
+        // Event Listeners
+        inputAmount.addEventListener('input', handleAmountChange);
+        inputDate.addEventListener('change', syncReceiptNumberWithDate);
+        document.querySelectorAll('input[name="payment-method"]').forEach(radio => {
+            radio.addEventListener('change', updatePreview);
+        });
+        [inputNo, inputDate, inputPayer, inputNim, inputTerbilang, inputPurpose, inputCity, inputTreasurer, toggleStamp].forEach(el => {
+            el.addEventListener('input', updatePreview);
+            el.addEventListener('change', updatePreview);
+        });
+
+        // Sinkronisasi Bulan Romawi & Tahun pada No. Kwitansi saat Tanggal berubah
+        function syncReceiptNumberWithDate() {
+            if (!inputDate.value) return;
+            const dateObj = new Date(inputDate.value + 'T00:00:00');
+            if (isNaN(dateObj.getTime())) return;
+
+            const romanMonth = ROMAN_MONTHS[dateObj.getMonth()];
+            const year = dateObj.getFullYear();
+
+            const currentNo = inputNo.value.trim();
+            const parts = currentNo.split('/');
+            if (parts.length === 5) {
+                parts[3] = romanMonth;
+                parts[4] = String(year);
+                inputNo.value = parts.join('/');
+            } else {
+                const seqMatch = currentNo.match(/^(\d+)/);
+                const seq = seqMatch ? seqMatch[1].padStart(3, '0') : '001';
+                inputNo.value = `${seq}/IN-KAS/MEX/${romanMonth}/${year}`;
+            }
+            updatePreview();
+        }
+
+        // Naikkan Nomor Urut Kwitansi +1
+        function incrementReceiptNo() {
+            const currentNo = inputNo.value.trim();
+            const parts = currentNo.split('/');
+            if (parts.length >= 1 && /^\d+$/.test(parts[0])) {
+                const nextNum = parseInt(parts[0], 10) + 1;
+                parts[0] = String(nextNum).padStart(3, '0');
+                inputNo.value = parts.join('/');
+            } else {
+                const dateObj = inputDate.value ? new Date(inputDate.value + 'T00:00:00') : new Date();
+                const romanMonth = ROMAN_MONTHS[dateObj.getMonth()];
+                const year = dateObj.getFullYear();
+                inputNo.value = `002/IN-KAS/MEX/${romanMonth}/${year}`;
+            }
+            updatePreview();
+            showToast(`Nomor kwitansi diperbarui ke ${inputNo.value}`);
+        }
+
+        // Ambil nilai metode pembayaran aktif
+        function getSelectedPaymentMethod() {
+            const selected = document.querySelector('input[name="payment-method"]:checked');
+            return selected ? selected.value : 'Cash';
+        }
+
+        // Fitur Salin Pesan WhatsApp
+        function copyWhatsAppMessage() {
+            const noKwitansi = inputNo.value.trim() || '-';
+            const nama = inputPayer.value.trim() || 'Rekan Medexordia';
+            const nim = inputNim.value.trim();
+            const amount = parseInt(inputAmount.value, 10) || 0;
+            const nominalStr = 'Rp ' + amount.toLocaleString('id-ID') + ',-';
+            const metode = getSelectedPaymentMethod();
+            const keperluan = inputPurpose.value.trim() || '-';
+            const tanggal = prevDate.textContent || '-';
+            const bendahara = inputTreasurer.value.trim() || 'Bendahara Angkatan 1';
+
+            const nimLine = nim ? `• *NIM:* ${nim}\n` : '';
+            const message = 
+`Assalamu'alaikum Wr. Wb.
+Halo *${nama}*, berikut adalah bukti tanda terima pembayaran kas Angkatan 1 *MEDEXORDIA* (FK UIN Walisongo Semarang):
+
+• *No. Kwitansi:* ${noKwitansi}
+• *Tanggal:* ${tanggal}
+• *Nama:* ${nama}
+${nimLine}• *Nominal:* ${nominalStr} (${metode})
+• *Keterangan:* ${keperluan}
+
+Status: *LUNAS / VERIFIED* ✅
+Terima kasih atas partisipasinya.
+
+Salam,
+*${bendahara}*`;
+
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = message;
+            tempTextArea.style.position = 'fixed';
+            tempTextArea.style.left = '-9999px';
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('Pesan WhatsApp berhasil disalin! Siap ditempel (Paste) ke chat.');
+                } else {
+                    showToast('Gagal menyalin pesan otomatis.', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal menyalin pesan.', true);
+            } finally {
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        // Sinkronisasi Otomatis saat Nama Pembayar dipilih/diketik
+        inputPayer.addEventListener('input', () => {
+            const val = inputPayer.value.trim().toLowerCase();
+            const found = STUDENT_LIST.find(s => s.nama.toLowerCase() === val);
+            if (found) {
+                inputNim.value = found.nim;
+                selectStudent.value = found.nim;
+                updatePreview();
+            }
+        });
+
+        // Sinkronisasi Otomatis saat NIM Pembayar dipilih/diketik
+        inputNim.addEventListener('input', () => {
+            const val = inputNim.value.trim();
+            const found = STUDENT_LIST.find(s => s.nim === val);
+            if (found) {
+                inputPayer.value = found.nama;
+                selectStudent.value = found.nim;
+                updatePreview();
+            }
+        });
+
+        // Handler saat memilih jenis pembayaran
+        function handlePurposeSelect(type) {
+            if (type === 'kas') {
+                inputPurpose.value = 'Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang';
+            } else if (type === 'acara') {
+                inputPurpose.value = 'Pembayaran Acara Angkatan 1 Medexordia FK UIN Walisongo Semarang';
+            } else if (type === 'lainnya') {
+                inputPurpose.value = '';
+                inputPurpose.focus();
+            }
+            updatePreview();
+        }
+
+        // Handler saat memilih dari Dropdown Pilih Cepat Mahasiswa
+        function handleStudentSelect(nim) {
+            if (!nim) return;
+            const found = STUDENT_LIST.find(s => s.nim === nim);
+            if (found) {
+                inputPayer.value = found.nama;
+                inputNim.value = found.nim;
+                updatePreview();
+            }
+        }
+
+        // Isi Dropdown & Datalist Mahasiswa
+        function populateStudentLists() {
+            STUDENT_LIST.forEach(student => {
+                const opt = document.createElement('option');
+                opt.value = student.nim;
+                opt.textContent = `${student.nim} — ${student.nama}`;
+                selectStudent.appendChild(opt);
+
+                const optNama = document.createElement('option');
+                optNama.value = student.nama;
+                optNama.label = student.nim;
+                listNamaMahasiswa.appendChild(optNama);
+
+                const optNim = document.createElement('option');
+                optNim.value = student.nim;
+                optNim.label = student.nama;
+                listNimMahasiswa.appendChild(optNim);
+            });
+            selectStudent.value = "25100160001";
+        }
+
+        // Handler Unggah Logo Kustom
+        uploadLogoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                customLogoImg.src = event.target.result;
+                customLogoImg.classList.remove('hidden');
+                defaultLogoSvg.classList.add('hidden');
+                resetLogoBtn.classList.remove('hidden');
+                showToast('Logo kustom berhasil diterapkan!');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Kembalikan ke Logo Default Medexordia
+        function resetLogo() {
+            uploadLogoInput.value = '';
+            customLogoImg.src = '';
+            customLogoImg.classList.add('hidden');
+            defaultLogoSvg.classList.remove('hidden');
+            resetLogoBtn.classList.add('hidden');
+            showToast('Dikembalikan ke logo resmi Medexordia.');
+        }
+
+        // Inisialisasi Tanggal Hari Ini saat halaman dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            populateStudentLists();
+            const today = new Date().toISOString().split('T')[0];
+            inputDate.value = today;
+            syncReceiptNumberWithDate();
+            handleAmountChange();
+            updatePreview();
+        });
+
+        // Set nominal cepat
+        function setNominal(val) {
+            const current = parseInt(inputAmount.value, 10) || 0;
+            inputAmount.value = current + val;
+            handleAmountChange();
+            updatePreview();
+        }
+
+        // Handler saat nominal berubah
+        function handleAmountChange() {
+            const num = parseInt(inputAmount.value, 10);
+            if (!isNaN(num) && num > 0) {
+                inputTerbilang.value = convertTerbilang(num) + ' Rupiah';
+            } else {
+                inputTerbilang.value = 'Nol Rupiah';
+            }
+        }
+
+        // Update Pratinjau Kwitansi secara Real-Time
+        function updatePreview() {
+            prevNo.textContent = inputNo.value.trim() || '-';
+            prevPayer.textContent = inputPayer.value.trim() || '........................................';
+            
+            const nimVal = inputNim.value.trim();
+            if (nimVal) {
+                prevNimWrapper.classList.remove('hidden');
+                prevNim.textContent = nimVal;
+            } else {
+                prevNimWrapper.classList.add('hidden');
+            }
+
+            prevTerbilang.textContent = inputTerbilang.value.trim() || '-';
+            prevPurpose.textContent = inputPurpose.value.trim() || '-';
+            prevCity.textContent = inputCity.value.trim() || 'Semarang';
+            prevTreasurer.textContent = inputTreasurer.value.trim() || 'Bendahara Angkatan 1';
+
+            // Format Tanggal Indonesia
+            if (inputDate.value) {
+                const dateObj = new Date(inputDate.value + 'T00:00:00');
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                prevDate.textContent = dateObj.toLocaleDateString('id-ID', options);
+            } else {
+                prevDate.textContent = '-';
+            }
+
+            // Format Rupiah & Metode Pembayaran
+            const amount = parseInt(inputAmount.value, 10) || 0;
+            prevAmount.textContent = 'Rp ' + amount.toLocaleString('id-ID') + ',-';
+            prevMethod.textContent = getSelectedPaymentMethod();
+
+            // Toggle Stempel Digital
+            if (toggleStamp.checked) {
+                digitalStamp.classList.remove('hidden');
+            } else {
+                digitalStamp.classList.add('hidden');
+            }
+        }
+
+        // Konversi Angka ke Terbilang Bahasa Indonesia
+        function convertTerbilang(angka) {
+            const bilangan = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+            let temp = '';
+
+            if (angka < 12) {
+                temp = ' ' + bilangan[angka];
+            } else if (angka < 20) {
+                temp = convertTerbilang(angka - 10) + ' Belas';
+            } else if (angka < 100) {
+                temp = convertTerbilang(Math.floor(angka / 10)) + ' Puluh' + convertTerbilang(angka % 10);
+            } else if (angka < 200) {
+                temp = ' Seratus' + convertTerbilang(angka - 100);
+            } else if (angka < 1000) {
+                temp = convertTerbilang(Math.floor(angka / 100)) + ' Ratus' + convertTerbilang(angka % 100);
+            } else if (angka < 2000) {
+                temp = ' Seribu' + convertTerbilang(angka - 1000);
+            } else if (angka < 1000000) {
+                temp = convertTerbilang(Math.floor(angka / 1000)) + ' Ribu' + convertTerbilang(angka % 1000);
+            } else if (angka < 1000000000) {
+                temp = convertTerbilang(Math.floor(angka / 1000000)) + ' Juta' + convertTerbilang(angka % 1000000);
+            } else if (angka < 1000000000000) {
+                temp = convertTerbilang(Math.floor(angka / 1000000000)) + ' Miliar' + convertTerbilang(angka % 1000000000);
+            }
+            return temp.trim();
+        }
+
+        // Reset Formulir
+        function resetForm() {
+            selectStudent.value = '';
+            inputPayer.value = '';
+            inputNim.value = '';
+            inputAmount.value = 0;
+            const cashRadio = document.querySelector('input[name="payment-method"][value="Cash"]');
+            if (cashRadio) cashRadio.checked = true;
+            selectPurpose.value = 'kas';
+            inputPurpose.value = 'Pembayaran Iuran Kas Bulanan Angkatan 1 Medexordia FK UIN Walisongo Semarang';
+            handleAmountChange();
+            updatePreview();
+            showToast('Formulir berhasil dikosongkan.');
+        }
+
+        // Membuat nama file ekspor yang rapi
+        function getExportFilename(ext) {
+            const payer = (inputPayer.value.trim() || 'Pembayar').replace(/[^a-zA-Z0-9]/g, '_');
+            const nim = inputNim.value.trim() ? '_' + inputNim.value.trim().replace(/[^a-zA-Z0-9]/g, '') : '';
+            return `Kwitansi_Medexordia_${payer}${nim}.${ext}`;
+        }
+
+        // Ekspor ke Gambar (PNG)
+        async function exportToImage() {
+            const captureEl = document.getElementById('receipt-capture-area');
+            const btn = document.getElementById('btn-export-png');
+            const originalHTML = btn.innerHTML;
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Memproses...</span>`;
+                lucide.createIcons();
+
+                const canvas = await html2canvas(captureEl, {
+                    scale: 2.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const link = document.createElement('a');
+                link.download = getExportFilename('png');
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                showToast('Kwitansi berhasil diunduh sebagai Gambar (PNG)!');
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal mengekspor gambar. Silakan coba lagi.', true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            }
+        }
+
+        // Ekspor ke Dokumen PDF
+        async function exportToPDF() {
+            const captureEl = document.getElementById('receipt-capture-area');
+            const btn = document.getElementById('btn-export-pdf');
+            const originalHTML = btn.innerHTML;
+
+            try {
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Memproses...</span>`;
+                lucide.createIcons();
+
+                const canvas = await html2canvas(captureEl, {
+                    scale: 2.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                
+                const imgWidth = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: [imgWidth, imgHeight]
+                });
+
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(getExportFilename('pdf'));
+
+                showToast('Kwitansi berhasil diekspor ke PDF!');
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal mengekspor PDF. Silakan coba lagi.', true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            }
+        }
+
+        // Notifikasi Toast
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-xl shadow-lg text-xs font-semibold text-white flex items-center gap-2 transition-all transform translate-y-2 opacity-0 ${
+                isError ? 'bg-rose-600' : 'bg-slate-900 border border-slate-700'
+            }`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
